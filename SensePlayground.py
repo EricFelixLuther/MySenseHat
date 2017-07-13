@@ -16,15 +16,6 @@ class SensePlayGround(SenseHat):
                          }
         for fun in self.WARIANTY.keys():
             self.WARIANTY[fun]['len'] = len([x for x in self.WARIANTY[fun]['func'](times=1)])
-            
-##        self.kolory.append(len([x for x in self.fun(times=1)])
-##        self.KOLORY1_LEN = len([x for x in self.kolory1(times=1)])
-##        self.KOLORY2_LEN = len([x for x in self.kolory2(times=1)])
-##        self.KOLORY3_LEN = len([x for x in self.kolory3(times=1)])
-##        self.WARIANTY = {1: {'len': self.KOLORY1_LEN, 'func': self.kolory1},
-##                         2: {'len': self.KOLORY2_LEN, 'func': self.kolory2},
-##                         3: {'len': self.KOLORY3_LEN, 'func': self.kolory3},
-##                         }
 
     def __call__(self, *args):
         self.clear(args)
@@ -116,15 +107,48 @@ class SensePlayGround(SenseHat):
             self.clear((i, i, i/2))
             time.sleep(3)
 
+    def losowy_piksel(self):
+        return (random.randint(0,7),
+                random.randint(0,7),
+                random.randint(0,255),
+                random.randint(0,255),
+                random.randint(0,255))
+
     def wariuj(self):
-        while True:
-            x = random.randint(0, 7)
-            y = random.randint(0, 7)
-            r = random.randint(0, 255)
-            g = random.randint(0, 255)
-            b = random.randint(0, 255)
-            self.set_pixel(x, y, r, g, b)
-            time.sleep(0.1)
+        try:
+            while True:
+                self.set_pixel(*self.losowy_piksel())
+                time.sleep(0.1)
+        except KeyboardInterrupt:
+            self.clear()
+
+    def wariuj2(self, wait=0.1, rem=1):
+        try:
+            while True:
+                self.screen = self.get_pixels()
+                for pix in range(len(self.screen)):
+                    for col in range(len(self.screen[pix])):
+                        if self.screen[pix][col] > rem:
+                            self.screen[pix][col] -= rem
+                        else:
+                            self.screen[pix][col] = 0
+                self.set_pixels(self.screen)
+                self.set_pixel(*self.losowy_piksel())
+                time.sleep(wait)
+        except KeyboardInterrupt:
+            print("Cleaning")
+            not_clear = True
+            while not_clear:
+                time.sleep(wait)
+                self.screen = self.get_pixels()
+                vals = []
+                for pix in range(len(self.screen)):
+                    for col in range(len(self.screen[pix])):
+                        if self.screen[pix][col] > 0:
+                            self.screen[pix][col] -= rem
+                            vals.append(self.screen[pix][col])
+                self.set_pixels(self.screen)
+                not_clear = any(vals)
 
     def klepsydra(self, czas, wariant=1):
         """
@@ -154,11 +178,8 @@ class SensePlayGround(SenseHat):
     def temperatura(self):
         self.show_message(str(self.get_temperature()))
 
-def yelder():
-    for i in (1, 2, 3):
-        yield i
-    for i in ('a', 'b', 'c'):
-        yield i
+sp = SensePlayGround()
+
 ##---=== DOCS ===---##
 ##set_rotation(r, redraw)
 ##    r - int, (0, 90, 180, 270)
